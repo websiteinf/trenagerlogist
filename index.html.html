@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тренажер студента — Курс логістики</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#C0392B;--red-hover:#A93226;--red-light:#FDECEA;
+  --gold:#D4A017;
+  --dark:#1A1A1A;
+  --text:#1A1A1A;--text-muted:#6B6B6B;
+  --bg:#F5F5F5;--bg2:#FFFFFF;--bg3:#F0F0F0;
+  --border:#E0E0E0;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+
+/* ══ TOPBAR ══ */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  height:56px;background:#fff;border-bottom:2px solid var(--red);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.topbar-logo{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:900;color:var(--red)}
+.topbar-right{display:flex;align-items:center;gap:24px}
+.topbar-tag{font-size:13px;color:var(--text-muted);font-weight:500}
+.topbar-step{font-size:13px;color:var(--text-muted)}
+.topbar-step span{color:var(--red);font-weight:600}
+
+/* ══ DESKTOP ══ */
+.desktop-layout{display:none;padding-top:56px;min-height:100vh;flex-direction:column}
+@media(min-width:900px){.desktop-layout{display:flex}.mobile-layout{display:none!important}}
+
+.hero{background:var(--dark);padding:36px 60px;display:flex;align-items:center;gap:32px}
+.badge{display:inline-flex;align-items:center;background:var(--red);color:#fff;font-family:'Unbounded',sans-serif;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:7px 18px;border-radius:4px;flex-shrink:0}
+.hero-title{font-family:'Unbounded',sans-serif;font-size:26px;font-weight:900;line-height:1.2;color:#fff}
+.hero-title span{color:var(--red)}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.5);margin-top:6px}
+
+.prog-strip{background:#fff;border-bottom:1px solid var(--border);padding:0 60px;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.prog-tab{padding:15px 24px;font-size:13px;font-weight:600;color:var(--text-muted);border-bottom:3px solid transparent;cursor:default;transition:all .2s;white-space:nowrap}
+.prog-tab.active{color:var(--red);border-bottom-color:var(--red)}
+.prog-tab.done{color:#B0B0B0;border-bottom-color:var(--border)}
+.prog-divider{width:1px;height:18px;background:var(--border);margin:0 4px}
+
+.desk-body{display:flex;flex:1}
+.desk-sidebar{width:260px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);padding:28px 20px}
+.si-item{padding:14px 16px;border-radius:8px;border:1px solid transparent;margin-bottom:6px;transition:all .2s}
+.si-item.active{background:var(--red-light);border-color:rgba(192,57,43,.25)}
+.si-item.done{opacity:.4}
+.si-item.inactive{opacity:.25}
+.si-num{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px}
+.si-item.active .si-num{color:var(--red)}
+.si-name{font-size:15px;font-weight:600;color:var(--text)}
+.si-check{font-size:11px;color:var(--red);margin-top:3px;display:none}
+.si-item.done .si-check{display:block}
+
+.desk-content{flex:1;overflow-y:auto;padding:40px 60px 60px;background:var(--bg)}
+
+/* ══ STEP ══ */
+.step-title{font-family:'Unbounded',sans-serif;font-size:24px;font-weight:900;color:var(--dark);margin-bottom:8px;line-height:1.3}
+.step-title span{color:var(--red)}
+.step-desc{font-size:15px;color:var(--text-muted);line-height:1.7;margin-bottom:32px}
+
+/* ══ YES/NO QUESTIONS ══ */
+.progress-info{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.progress-info-label{font-size:13px;color:var(--text-muted);font-weight:500}
+.progress-info-count{font-size:13px;font-weight:700;color:var(--red)}
+.q-progress-bar{height:4px;background:var(--bg3);border-radius:2px;margin-bottom:28px}
+.q-progress-fill{height:100%;background:var(--red);border-radius:2px;transition:width .3s}
+
+.yn-block{
+  background:#fff;border:1.5px solid var(--border);border-radius:12px;
+  padding:24px 28px;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  transition:border .15s;
+}
+.yn-block.answered{border-color:rgba(192,57,43,.3);background:var(--red-light)}
+.yn-num{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;
+  background:var(--gold);color:#fff;
+  font-size:13px;font-weight:700;flex-shrink:0;
+}
+.yn-text{font-size:15px;font-weight:500;color:var(--dark);line-height:1.45;flex:1}
+.yn-btns{display:flex;gap:8px;flex-shrink:0}
+.yn-btn{
+  padding:9px 20px;border-radius:8px;
+  font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'Inter',sans-serif;transition:all .15s;border:1.5px solid var(--border);
+  background:#fff;color:var(--text-muted);
+}
+.yn-btn:hover{border-color:var(--red);color:var(--red)}
+.yn-btn.yes.active{background:var(--red);border-color:var(--red);color:#fff}
+.yn-btn.no.active{background:var(--dark);border-color:var(--dark);color:#fff}
+
+/* ══ GOAL ══ */
+.goal-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px}
+.goal-label{font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px;letter-spacing:.08em;text-transform:uppercase;display:block}
+.goal-hint{font-size:12px;color:var(--text-muted);margin-bottom:8px;line-height:1.4}
+.goal-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--dark);background:#fff;resize:none;line-height:1.55;transition:border .15s}
+.goal-input:focus{outline:none;border-color:var(--red)}
+.goal-input::placeholder{color:#B0B0B0}
+.formula-box{padding:20px;border-radius:10px;background:var(--red-light);border:1.5px solid rgba(192,57,43,.2);margin-bottom:8px}
+.formula-badge{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+.formula-text{font-size:15px;color:var(--dark);line-height:1.7;font-weight:500}
+.copy-btn{font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;padding:8px 0 0;font-family:'Inter',sans-serif;font-weight:600}
+.copy-btn:hover{opacity:.7}
+
+/* ══ STAGES ══ */
+.stages-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stage-card{padding:20px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:#fff}
+.stage-card:hover{border-color:var(--red);background:var(--red-light)}
+.stage-card.selected{border-color:var(--red);background:var(--red-light)}
+.stage-num{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px}
+.stage-card.selected .stage-num{color:var(--red)}
+.stage-name{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:4px}
+.stage-quote{font-size:13px;color:var(--text-muted);font-style:italic}
+.stage-advice{margin-top:12px;padding-top:12px;border-top:1px solid rgba(192,57,43,.2);font-size:13px;color:var(--dark);line-height:1.65;display:none;font-weight:500}
+.stage-card.selected .stage-advice{display:block}
+
+/* ══ BUTTONS ══ */
+.btn-row{display:flex;gap:12px;margin-top:32px}
+.btn-back{padding:14px 28px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font-size:14px;cursor:pointer;color:var(--text-muted);font-family:'Inter',sans-serif;transition:all .15s;font-weight:500}
+.btn-back:hover{border-color:var(--dark);color:var(--dark)}
+.btn-next{flex:1;max-width:320px;padding:16px;border-radius:8px;background:var(--red);border:none;font-size:14px;font-weight:700;cursor:pointer;color:#fff;font-family:'Unbounded',sans-serif;letter-spacing:.05em;transition:all .15s;text-transform:uppercase}
+.btn-next:hover{background:var(--red-hover)}
+.btn-next:disabled{opacity:.35;cursor:not-allowed}
+
+/* ══ RESULT PREVIEW ══ */
+.result-preview{
+  background:#fff;border:1.5px solid var(--border);border-radius:12px;
+  padding:24px;margin-bottom:28px;
+}
+.result-preview-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px}
+.result-bars{display:flex;flex-direction:column;gap:10px}
+.rbar-row{display:flex;align-items:center;gap:12px}
+.rbar-name{font-size:13px;font-weight:600;color:var(--dark);width:90px;flex-shrink:0}
+.rbar-track{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:4px;background:var(--border);transition:width .4s,background .4s}
+.rbar-fill.top{background:var(--red)}
+.rbar-score{font-size:13px;font-weight:700;color:var(--text-muted);width:30px;text-align:right}
+.rbar-score.top{color:var(--red)}
+
+/* ══ FINAL ══ */
+.final-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.final-header-card{grid-column:1/-1;background:var(--dark);border-radius:12px;padding:28px 32px;display:flex;align-items:center;gap:24px}
+.final-icon{width:68px;height:68px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.final-icon-letter{font-family:'Unbounded',sans-serif;font-size:24px;font-weight:900;color:#fff}
+.final-header-tag{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px}
+.final-header-name{font-family:'Unbounded',sans-serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:8px}
+.final-header-type{display:inline-block;font-size:12px;font-weight:600;padding:5px 16px;border-radius:4px;background:var(--red);color:#fff;letter-spacing:.04em}
+.final-sec{padding:20px;border-radius:10px;background:#fff;border:1px solid var(--border)}
+.final-sec.wide{grid-column:1/-1}
+.final-sec-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.final-sec-value{font-size:15px;color:var(--dark);line-height:1.65;font-weight:500}
+.final-tips{margin-top:8px}
+.final-tip{font-size:13px;color:var(--text-muted);padding:4px 0 4px 20px;position:relative;line-height:1.55}
+.final-tip:before{content:"→";position:absolute;left:0;color:var(--red);font-weight:700}
+.final-rule{grid-column:1/-1;padding:20px;border-radius:10px;background:var(--red);font-size:16px;color:#fff;line-height:1.65;font-style:italic;font-weight:500}
+.restart-btn{margin-top:24px;padding:14px 32px;border-radius:8px;background:#fff;border:1.5px solid var(--border);font-size:14px;font-weight:600;cursor:pointer;color:var(--text-muted);font-family:'Inter',sans-serif;transition:all .15s}
+.restart-btn:hover{border-color:var(--dark);color:var(--dark)}
+
+/* ══ MOBILE ══ */
+.mobile-layout{display:flex;flex-direction:column;min-height:100vh;padding-top:56px;background:var(--bg)}
+.m-header{background:var(--dark);padding:24px 20px 20px;text-align:center}
+.m-badge{display:inline-block;background:var(--red);color:#fff;font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:5px 14px;border-radius:4px;margin-bottom:12px}
+.m-title{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:900;line-height:1.2;color:#fff;margin-bottom:5px}
+.m-title span{color:var(--red)}
+.m-sub{font-size:12px;color:rgba(255,255,255,.5)}
+.m-prog{padding:14px 18px 0;background:#fff;border-bottom:1px solid var(--border)}
+.m-prog-bars{display:flex;gap:5px;margin-bottom:7px}
+.mp{flex:1;height:3px;border-radius:2px;background:var(--bg3);transition:background .3s}
+.mp.done{background:var(--red)}
+.mp.active{background:rgba(192,57,43,.5)}
+.m-prog-label{font-size:10px;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;padding-bottom:3px;font-weight:600}
+.m-content{padding:18px 18px 32px;flex:1}
+.m-step-title{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:900;color:var(--dark);margin-bottom:5px;line-height:1.3}
+.m-step-title span{color:var(--red)}
+.m-step-desc{font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:16px}
+
+/* mobile q progress */
+.m-q-progress{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.m-q-progress-label{font-size:12px;color:var(--text-muted);font-weight:500}
+.m-q-progress-count{font-size:12px;font-weight:700;color:var(--red)}
+.m-q-bar{height:3px;background:var(--bg3);border-radius:2px;margin-bottom:16px}
+.m-q-bar-fill{height:100%;background:var(--red);border-radius:2px;transition:width .3s}
+
+.m-yn-block{
+  background:#fff;border:1.5px solid var(--border);border-radius:10px;
+  padding:14px 16px;margin-bottom:8px;
+}
+.m-yn-block.answered{border-color:rgba(192,57,43,.3);background:var(--red-light)}
+.m-yn-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.m-yn-num{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.m-yn-text{font-size:13px;font-weight:500;color:var(--dark);line-height:1.45;flex:1}
+.m-yn-btns{display:flex;gap:7px}
+.m-yn-btn{flex:1;padding:9px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;border:1.5px solid var(--border);background:#fff;color:var(--text-muted);text-align:center}
+.m-yn-btn.yes.active{background:var(--red);border-color:var(--red);color:#fff}
+.m-yn-btn.no.active{background:var(--dark);border-color:var(--dark);color:#fff}
+
+.m-goal-field{margin-bottom:14px}
+.m-goal-label{font-size:11px;font-weight:700;color:var(--red);margin-bottom:3px;letter-spacing:.08em;text-transform:uppercase;display:block}
+.m-goal-hint{font-size:12px;color:var(--text-muted);margin-bottom:5px;line-height:1.4}
+.m-goal-input{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--dark);background:#fff;resize:none;line-height:1.5;transition:border .15s}
+.m-goal-input:focus{outline:none;border-color:var(--red)}
+.m-goal-input::placeholder{color:#B0B0B0}
+
+.m-stages{display:flex;flex-direction:column;gap:8px}
+.m-stage{padding:14px 16px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all .15s;background:#fff}
+.m-stage:hover,.m-stage.selected{border-color:var(--red);background:var(--red-light)}
+.m-stage-num{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-bottom:2px}
+.m-stage.selected .m-stage-num{color:var(--red)}
+.m-stage-name{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:2px}
+.m-stage-quote{font-size:12px;color:var(--text-muted);font-style:italic}
+.m-stage-advice{margin-top:9px;padding-top:9px;border-top:1px solid rgba(192,57,43,.2);font-size:12px;color:var(--dark);line-height:1.6;display:none;font-weight:500}
+.m-stage.selected .m-stage-advice{display:block}
+
+.m-formula-box{padding:14px;border-radius:10px;background:var(--red-light);border:1.5px solid rgba(192,57,43,.2);margin-top:14px}
+.m-formula-badge{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--red);margin-bottom:6px}
+.m-formula-text{font-size:13px;color:var(--dark);line-height:1.7;font-weight:500}
+
+.m-final-card{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.m-final-header{background:var(--dark);padding:18px}
+.m-final-header-tag{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px}
+.m-final-header-name{font-family:'Unbounded',sans-serif;font-size:17px;font-weight:900;color:#fff;margin-bottom:8px}
+.m-final-type{display:inline-block;font-size:11px;font-weight:700;padding:4px 12px;border-radius:4px;background:var(--red);color:#fff}
+.m-final-secs{padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:#fff}
+.m-final-sec{padding:12px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--border)}
+.m-final-sec-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+.m-final-sec-value{font-size:13px;color:var(--dark);line-height:1.6;font-weight:500}
+.m-final-tips{margin-top:6px}
+.m-final-tip{font-size:12px;color:var(--text-muted);padding:3px 0 3px 16px;position:relative;line-height:1.5}
+.m-final-tip:before{content:"→";position:absolute;left:0;color:var(--red);font-weight:700}
+.m-final-rule{padding:14px 16px;background:var(--red);font-size:13px;color:#fff;line-height:1.65;font-style:italic;font-weight:500}
+
+.m-btn-row{display:flex;gap:8px;margin-top:20px}
+.m-btn-back{padding:13px 16px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font-size:13px;cursor:pointer;color:var(--text-muted);font-family:'Inter',sans-serif;transition:all .15s;font-weight:500}
+.m-btn-back:hover{border-color:var(--dark);color:var(--dark)}
+.m-btn-next{flex:1;padding:14px;border-radius:8px;background:var(--red);border:none;font-size:12px;font-weight:700;cursor:pointer;color:#fff;font-family:'Unbounded',sans-serif;letter-spacing:.04em;transition:all .15s;text-transform:uppercase}
+.m-btn-next:hover{background:var(--red-hover)}
+.m-btn-next:disabled{opacity:.3;cursor:not-allowed}
+.m-restart{width:100%;padding:13px;border-radius:8px;background:#fff;border:1.5px solid var(--border);font-size:13px;cursor:pointer;color:var(--text-muted);font-family:'Inter',sans-serif;margin-top:10px;transition:all .15s;font-weight:500}
+.m-restart:hover{border-color:var(--dark);color:var(--dark)}
+
+/* result bars mobile */
+.m-result-preview{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px}
+.m-result-preview-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">ЛОГІСТИКА</div>
+  <div class="topbar-right">
+    <div class="topbar-tag">Персональний тренажер студента</div>
+    <div class="topbar-step" id="topbar-step"><span>Крок 1</span> з 3</div>
+  </div>
+</div>
+
+<!-- ══════════ DESKTOP ══════════ -->
+<div class="desktop-layout" id="desktop">
+  <div class="hero">
+    <div class="badge">Урок 2</div>
+    <div>
+      <div class="hero-title">Твій персональний <span>тренажер студента</span></div>
+      <div class="hero-sub">3 кроки · ~7 хвилин · готовий план навчання</div>
+    </div>
+  </div>
+  <div class="prog-strip">
+    <div class="prog-tab active" id="dtab1">Крок 1 — Тип учня</div>
+    <div class="prog-divider"></div>
+    <div class="prog-tab inactive" id="dtab2">Крок 2 — Ціль на курс</div>
+    <div class="prog-divider"></div>
+    <div class="prog-tab inactive" id="dtab3">Крок 3 — Поточна стадія</div>
+    <div class="prog-divider"></div>
+    <div class="prog-tab inactive" id="dtab4">Фінал — Твоя картка</div>
+  </div>
+  <div class="desk-body">
+    <div class="desk-sidebar">
+      <div class="si-item active" id="dsi1"><div class="si-num">Крок 1</div><div class="si-name">Тип учня</div><div class="si-check">Виконано ✓</div></div>
+      <div class="si-item inactive" id="dsi2"><div class="si-num">Крок 2</div><div class="si-name">Ціль на курс</div><div class="si-check">Виконано ✓</div></div>
+      <div class="si-item inactive" id="dsi3"><div class="si-num">Крок 3</div><div class="si-name">Поточна стадія</div><div class="si-check">Виконано ✓</div></div>
+      <div class="si-item inactive" id="dsi4"><div class="si-num">Фінал</div><div class="si-name">Твоя картка</div></div>
+    </div>
+    <div class="desk-content" id="desk-content">
+
+      <!-- D1: ТЕСТ -->
+      <div id="d1">
+        <div class="step-title">Який ти <span>тип учня?</span></div>
+        <div class="step-desc">20 тверджень — відповідай чесно «Так» або «Ні». Немає правильних чи неправильних відповідей.</div>
+        <div class="progress-info">
+          <div class="progress-info-label">Відповіді на запитання</div>
+          <div class="progress-info-count" id="d-answered-count">0 / 20</div>
+        </div>
+        <div class="q-progress-bar"><div class="q-progress-fill" id="d-progress-fill" style="width:0%"></div></div>
+        <div id="d-questions"></div>
+        <div class="btn-row"><button class="btn-next" id="d-btn1" disabled onclick="dGoStep2()">ДАЛІ →</button></div>
+      </div>
+
+      <!-- D2: ЦІЛЬ -->
+      <div id="d2" style="display:none">
+        <div class="step-title">Постав <span>ціль</span> на курс</div>
+        <div class="step-desc">Три питання — і твоя особиста формула цілі готова. Мозок реагує на конкретний образ, не абстракцію.</div>
+        <div class="goal-grid">
+          <div>
+            <label class="goal-label">Конкретний результат</label>
+            <div class="goal-hint">Що саме хочеш отримати після завершення курсу?</div>
+            <textarea class="goal-input" id="d-g1" rows="3" placeholder="Вийти на роботу логістом / підвищити зарплату…" oninput="dUpdateFormula()"></textarea>
+          </div>
+          <div>
+            <label class="goal-label">Кількісний показник</label>
+            <div class="goal-hint">Як зрозумієш, що це сталося?</div>
+            <textarea class="goal-input" id="d-g2" rows="3" placeholder="Отримую оффер від X грн / підвищую дохід на Y%…" oninput="dUpdateFormula()"></textarea>
+          </div>
+          <div>
+            <label class="goal-label">Доказ дії</label>
+            <div class="goal-hint">Що точно зробиш для цієї мети?</div>
+            <textarea class="goal-input" id="d-g3" rows="3" placeholder="Виконаю всі завдання / надішлю 10 резюме…" oninput="dUpdateFormula()"></textarea>
+          </div>
+        </div>
+        <div class="formula-box" id="d-formula" style="display:none">
+          <div class="formula-badge">Твоя формула цілі</div>
+          <div class="formula-text" id="d-formula-text"></div>
+          <button class="copy-btn" onclick="dCopy()">Скопіювати ↗</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn-back" onclick="dGoStep1()">← Назад</button>
+          <button class="btn-next" onclick="dGoStep3()">ДАЛІ →</button>
+        </div>
+      </div>
+
+      <!-- D3: СТАДІЯ -->
+      <div id="d3" style="display:none">
+        <div class="step-title">Де ти <span>зараз?</span></div>
+        <div class="step-desc">Обери стадію, яка найкраще описує твій поточний стан — і отримай конкретні дії.</div>
+        <div class="stages-grid" id="d-stages"></div>
+        <div class="btn-row">
+          <button class="btn-back" onclick="dGoStep2()">← Назад</button>
+          <button class="btn-next" id="d-btn3" disabled onclick="dGoFinal()">МОЯ КАРТКА →</button>
+        </div>
+      </div>
+
+      <!-- D4: ФІНАЛ -->
+      <div id="d4" style="display:none">
+        <div class="step-title" style="margin-bottom:24px">Твоя <span>картка студента</span></div>
+        <div class="final-grid">
+          <div class="final-header-card">
+            <div class="final-icon"><div class="final-icon-letter" id="d-final-letter">А</div></div>
+            <div>
+              <div class="final-header-tag">Курс логістики · персональний профіль</div>
+              <div class="final-header-name" id="d-final-name"></div>
+              <div class="final-header-type" id="d-final-type"></div>
+            </div>
+          </div>
+          <div class="final-sec">
+            <div class="final-sec-label">Твій стиль навчання</div>
+            <div class="final-sec-value" id="d-final-desc"></div>
+            <div class="final-tips" id="d-final-tips"></div>
+          </div>
+          <div class="final-sec">
+            <div class="final-sec-label">Твоя ціль</div>
+            <div class="final-sec-value" id="d-final-goal"></div>
+          </div>
+          <div class="final-sec wide">
+            <div class="final-sec-label">Поточна стадія мотивації</div>
+            <div class="final-sec-value" id="d-final-stage"></div>
+            <div class="final-tips" id="d-final-stage-advice"></div>
+          </div>
+          <div class="final-rule" id="d-final-rule"></div>
+        </div>
+        <div><button class="restart-btn" onclick="dRestart()">Пройти знову</button></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MOBILE ══════════ -->
+<div class="mobile-layout" id="mobile">
+  <div class="m-header">
+    <div class="m-badge">Урок 2</div>
+    <div class="m-title">Твій персональний<br><span>тренажер студента</span></div>
+    <div class="m-sub" style="margin-top:5px">3 кроки · ~7 хвилин · готовий план навчання</div>
+  </div>
+  <div class="m-prog">
+    <div class="m-prog-bars">
+      <div class="mp active" id="mp1"></div><div class="mp" id="mp2"></div>
+      <div class="mp" id="mp3"></div><div class="mp" id="mp4"></div>
+    </div>
+    <div class="m-prog-label" id="m-prog-label">Крок 1 з 3 — Тип учня</div>
+  </div>
+
+  <!-- M1 -->
+  <div class="m-content" id="m1">
+    <div class="m-step-title">Який ти <span>тип учня?</span></div>
+    <div class="m-step-desc">20 тверджень — відповідай «Так» або «Ні». Немає правильних чи неправильних відповідей.</div>
+    <div class="m-q-progress">
+      <div class="m-q-progress-label">Відповіді</div>
+      <div class="m-q-progress-count" id="m-answered-count">0 / 20</div>
+    </div>
+    <div class="m-q-bar"><div class="m-q-bar-fill" id="m-progress-fill" style="width:0%"></div></div>
+    <div id="m-questions"></div>
+    <div class="m-btn-row"><button class="m-btn-next" id="m-btn1" disabled onclick="mGoStep2()">ДАЛІ →</button></div>
+  </div>
+
+  <!-- M2 -->
+  <div class="m-content" id="m2" style="display:none">
+    <div class="m-step-title">Постав <span>ціль</span> на курс</div>
+    <div class="m-step-desc">Три питання — і твоя особиста формула цілі готова.</div>
+    <div class="m-goal-field"><label class="m-goal-label">Конкретний результат</label><div class="m-goal-hint">Що саме хочеш отримати після завершення?</div><textarea class="m-goal-input" id="m-g1" rows="2" placeholder="Вийти на роботу логістом / підвищити зарплату…" oninput="mUpdateFormula()"></textarea></div>
+    <div class="m-goal-field"><label class="m-goal-label">Кількісний показник</label><div class="m-goal-hint">Як зрозумієш, що це сталося?</div><textarea class="m-goal-input" id="m-g2" rows="2" placeholder="Отримую оффер від X грн / дохід на Y%…" oninput="mUpdateFormula()"></textarea></div>
+    <div class="m-goal-field"><label class="m-goal-label">Доказ дії</label><div class="m-goal-hint">Що точно зробиш для цієї мети?</div><textarea class="m-goal-input" id="m-g3" rows="2" placeholder="Виконаю всі завдання / надішлю 10 резюме…" oninput="mUpdateFormula()"></textarea></div>
+    <div class="m-formula-box" id="m-formula" style="display:none"><div class="m-formula-badge">Твоя формула цілі</div><div class="m-formula-text" id="m-formula-text"></div></div>
+    <div class="m-btn-row"><button class="m-btn-back" onclick="mGoStep1()">← Назад</button><button class="m-btn-next" onclick="mGoStep3()">ДАЛІ →</button></div>
+  </div>
+
+  <!-- M3 -->
+  <div class="m-content" id="m3" style="display:none">
+    <div class="m-step-title">Де ти <span>зараз?</span></div>
+    <div class="m-step-desc">Обери стадію, яка найкраще описує твій стан.</div>
+    <div class="m-stages" id="m-stages"></div>
+    <div class="m-btn-row"><button class="m-btn-back" onclick="mGoStep2()">← Назад</button><button class="m-btn-next" id="m-btn3" disabled onclick="mGoFinal()">МОЯ КАРТКА →</button></div>
+  </div>
+
+  <!-- M4 FINAL -->
+  <div class="m-content" id="m4" style="display:none">
+    <div class="m-step-title" style="margin-bottom:14px">Твоя <span>картка студента</span></div>
+    <div class="m-final-card">
+      <div class="m-final-header">
+        <div class="m-final-header-tag">Курс логістики · персональний профіль</div>
+        <div class="m-final-header-name" id="m-final-name"></div>
+        <div class="m-final-type" id="m-final-type"></div>
+      </div>
+      <div class="m-final-secs">
+        <div class="m-final-sec"><div class="m-final-sec-label">Твій стиль навчання</div><div class="m-final-sec-value" id="m-final-desc"></div><div class="m-final-tips" id="m-final-tips"></div></div>
+        <div class="m-final-sec"><div class="m-final-sec-label">Твоя ціль</div><div class="m-final-sec-value" id="m-final-goal"></div></div>
+        <div class="m-final-sec"><div class="m-final-sec-label">Поточна стадія</div><div class="m-final-sec-value" id="m-final-stage"></div><div class="m-final-tips" id="m-final-stage-advice"></div></div>
+        <div class="m-final-rule" id="m-final-rule"></div>
+      </div>
+    </div>
+    <button class="m-restart" onclick="mRestart()">Пройти знову</button>
+  </div>
+</div>
+
+<script>
+// ══ ДАНІ ══
+// 20 тверджень: 1-5 Активіст, 6-10 Мислитель, 11-15 Теоретик, 16-20 Прагматик
+const questions = [
+  // АКТИВІСТ (1-5)
+  {text:"Коли з'являється нове завдання, я одразу берусь за нього — розберусь по ходу",type:"ACT"},
+  {text:"Мені швидко набридає виконувати одне й те саме — хочу нових викликів і задач",type:"ACT"},
+  {text:"У командній роботі я зазвичай першим пропоную ідеї та ініціюю дії",type:"ACT"},
+  {text:"Мені подобається пробувати нові схеми роботи, навіть якщо старі непогано працюють",type:"ACT"},
+  {text:"Я легко переключаюсь між кількома задачами і почуваюсь в ресурсі від різноманіття",type:"ACT"},
+  // МИСЛИТЕЛЬ (6-10)
+  {text:"Перш ніж погодитись з новим підходом, я довго обдумую всі можливі наслідки",type:"MIS"},
+  {text:"На заняттях я зазвичай слухаю інших і висловлюю думку лише після всіх",type:"MIS"},
+  {text:"Приймаючи рішення, я збираю максимум інформації перш ніж діяти",type:"MIS"},
+  {text:"Я надаю перевагу спостереженню за тим, як інші виконують нове завдання, перш ніж спробувати самому",type:"MIS"},
+  {text:"Помилки в роботі я ретельно аналізую, щоб зрозуміти першопричину і не повторити",type:"MIS"},
+  // ТЕОРЕТИК (11-15)
+  {text:"Мені важливо розуміти логіку і принципи, що стоять за кожним робочим процесом",type:"TEO"},
+  {text:"Я вважаю за краще, щоб матеріал був чітко структурований і послідовний",type:"TEO"},
+  {text:"Коли стикаюсь з проблемою — шукаю системне пояснення, а не просто швидке рішення",type:"TEO"},
+  {text:"Мені некомфортно діяти без чіткого плану або алгоритму",type:"TEO"},
+  {text:"Я намагаюсь знайти загальні закономірності в роботі, а не просто вирішити окремий випадок",type:"TEO"},
+  // ПРАГМАТИК (16-20)
+  {text:"Якщо дізнаюсь про новий інструмент або метод — одразу хочу перевірити чи він працює",type:"PRA"},
+  {text:"Мені важливо розуміти, як конкретно застосувати знання з уроку в реальній роботі",type:"PRA"},
+  {text:"Теоретичні дискусії без практичного результату мене дратують і витрачають час",type:"PRA"},
+  {text:"Я шукаю найефективніший спосіб виконати завдання, навіть якщо це означає відступити від стандарту",type:"PRA"},
+  {text:"Після навчання я одразу намагаюсь впровадити нові підходи в роботу",type:"PRA"},
+];
+
+const types = {
+  ACT:{
+    letter:"А",name:"Активіст",label:"Тип учня: Активіст",
+    desc:"Ти повністю присвячуєш себе новим переживанням. Спочатку дієш — потім думаєш. Вчишся на власному досвіді, відкритий до нових ідей. Твоя філософія: «Я спробую щось нове».",
+    tips:[
+      "Виконуй завдання одразу, навіть із помилками — для тебе це і є навчання",
+      "Будь активним у чаті курсу: ініціюй обговорення, діліться досвідом",
+      "Не зависай на теорії — твій ресурс це практика і живий досвід",
+      "Бери додаткові завдання і запрошуй одногрупників на онлайн-каву"
+    ],
+    rule:"Твій девіз: спочатку зробити — потім розібратись. Дій зараз."
+  },
+  MIS:{
+    letter:"М",name:"Мислитель",label:"Тип учня: Мислитель",
+    desc:"Ти розглядаєш проблему з різних точок зору, збираєш дані і ретельно обдумуєш перш ніж діяти. Твій девіз: «Будь обережний». Спочатку спостерігаєш — потім робиш висновки.",
+    tips:[
+      "Ставь багато питань — для тебе це метод, а не слабкість",
+      "Веди щоденник навчання: що зрозумів, що здивувало, що буду застосовувати",
+      "Виконуй завдання послідовно і обов'язково приходь на всі зустрічі",
+      "Спілкуйся з активістами — їхній темп тебе буде заряджати"
+    ],
+    rule:"Твій девіз: спочатку спостерегти і осмислити — потім зробити зважений крок."
+  },
+  TEO:{
+    letter:"Т",name:"Теоретик",label:"Тип учня: Теоретик",
+    desc:"Ти інтегруєш спостереження в логічні теорії. Підхід до задач послідовний і раціональний. Любиш аналіз і синтез. Запитуєш: «Чи це має сенс? Як це пов'язано?»",
+    tips:[
+      "Конспектуй і систематизуй кожен урок — будуй власну структуру знань",
+      "Шукай додаткові матеріали для глибшого розуміння логіки процесів",
+      "Не порівнюй свій темп з активістами — у вас різні стилі",
+      "Напрацьовуй навичку «просто зробити» — навіть маленькими кроками"
+    ],
+    rule:"Твій девіз: якщо це логічно — це правильно. Систематизуй і рухайся вперед."
+  },
+  PRA:{
+    letter:"П",name:"Прагматик",label:"Тип учня: Прагматик",
+    desc:"Ти прагнеш перевіряти ідеї і техніки на практиці. Постійно шукаєш нові підходи і при першій можливості їх тестуєш. Діяєш швидко і впевнено, коли ідея тебе приваблює.",
+    tips:[
+      "Виконуй завдання одразу після кожного уроку — не давай знанням «охолонути»",
+      "Йди чітко за програмою — не випадай з процесу навіть коли важко",
+      "Відзначай кожен практичний результат, навіть маленький",
+      "Шукай відповідь на питання «як це застосувати в логістиці прямо зараз?»"
+    ],
+    rule:"Твій девіз: завжди є кращий спосіб. Знайти його — і одразу впровадити."
+  }
+};
+
+const stages=[
+  {name:"Необґрунтований оптимізм",quote:'"Я зараз як почну! Все вийде!"',num:"Стадія 1",advice:"Найкращий момент — зафіксуй ціль і постав навчання в календар прямо зараз, поки є енергія."},
+  {name:"Необґрунтований песимізм",quote:'"Все, я нічого не вмію і не зможу..."',num:"Стадія 2",advice:"Це нормальна стадія — не сигнал зупинитись. Зроби найменший крок: відкрий урок, виконай одне завдання. Дофамін повернеться через дію."},
+  {name:"Дофамінова яма",quote:'"Може, це навчання не для мене..."',num:"Стадія 3 — небезпечна зона",advice:"Тут більшість кидає. Але це просто стадія. Згадай свою ціль. Попроси підтримку куратора. Зроби один маленький крок вперед."},
+  {name:"Обґрунтований песимізм",quote:'"Важко, але здається я зміг!"',num:"Стадія 4",advice:"Ти пройшов найважче. Відзначай кожен результат, навіть маленький. Мозок має бачити прогрес."},
+  {name:"Обґрунтований оптимізм",quote:'"Бачу результати. Я молодець!"',num:"Стадія 5",advice:"Поділись прогресом з чатом — це закріпить результат і надихне інших."}
+];
+
+// ══ STATE ══
+let dAnswers={},dStage=null,dType=null;
+let mAnswers={},mStage=null,mType=null;
+
+function calcType(ans){
+  const c={ACT:0,MIS:0,TEO:0,PRA:0};
+  questions.forEach((q,i)=>{if(ans[i]==="yes")c[q.type]++});
+  return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];
+}
+function getScores(ans){
+  const c={ACT:0,MIS:0,TEO:0,PRA:0};
+  questions.forEach((q,i)=>{if(ans[i]==="yes")c[q.type]++});
+  return c;
+}
+function fmtGoal(g1,g2,g3){
+  let t="Я завершую навчання";
+  if(g1)t+=` і ${lc(g1)}`;
+  if(g2)t+=`. Знатиму, що досяг мети, коли: ${lc(g2)}`;
+  if(g3)t+=`. Для цього: ${lc(g3)}`;
+  return t+".";
+}
+function lc(s){return s.charAt(0).toLowerCase()+s.slice(1)}
+
+// ══ DESKTOP ══
+function dBuildQ(){
+  const c=document.getElementById("d-questions");c.innerHTML="";
+  questions.forEach((q,i)=>{
+    const div=document.createElement("div");
+    div.className="yn-block"+(dAnswers[i]?" answered":"");
+    div.id=`dblock${i}`;
+    div.innerHTML=`
+      <div class="yn-num">${i+1}</div>
+      <div class="yn-text">${q.text}</div>
+      <div class="yn-btns">
+        <button class="yn-btn yes${dAnswers[i]==='yes'?' active':''}" onclick="dAns(${i},'yes')">Так</button>
+        <button class="yn-btn no${dAnswers[i]==='no'?' active':''}" onclick="dAns(${i},'no')">Ні</button>
+      </div>`;
+    c.appendChild(div);
+  });
+}
+function dAns(i,val){
+  dAnswers[i]=val;
+  const block=document.getElementById(`dblock${i}`);
+  block.className="yn-block answered";
+  block.querySelectorAll(".yn-btn").forEach(b=>b.classList.remove("active"));
+  block.querySelector(`.yn-btn.${val}`).classList.add("active");
+  const count=Object.keys(dAnswers).length;
+  document.getElementById("d-answered-count").textContent=`${count} / 20`;
+  document.getElementById("d-progress-fill").style.width=`${count/20*100}%`;
+  document.getElementById("d-btn1").disabled=count<20;
+}
+function dSetNav(s){
+  [1,2,3,4].forEach(i=>{
+    const si=document.getElementById("dsi"+i);
+    const tab=document.getElementById("dtab"+i);
+    si.className="si-item "+(i<s?"done":i===s?"active":"inactive");
+    if(tab)tab.className="prog-tab "+(i<s?"done":i===s?"active":"inactive");
+  });
+  const ts=["","Крок 1","Крок 2","Крок 3","Фінал"];
+  const tsub=["","з 3","з 3","з 3",""];
+  document.getElementById("topbar-step").innerHTML=`<span>${ts[s]}</span> ${tsub[s]}`;
+}
+function dShow(id){["d1","d2","d3","d4"].forEach(x=>document.getElementById(x).style.display="none");document.getElementById(id).style.display="";document.getElementById("desk-content").scrollTop=0}
+function dGoStep1(){dShow("d1");dSetNav(1)}
+function dGoStep2(){dType=calcType(dAnswers);dShow("d2");dSetNav(2);dUpdateFormula()}
+function dGoStep3(){dShow("d3");dSetNav(3);dBuildStages()}
+function dGoFinal(){dShow("d4");dSetNav(4);dBuildFinal()}
+function dBuildStages(){
+  const c=document.getElementById("d-stages");c.innerHTML="";
+  stages.forEach((s,i)=>{
+    const d=document.createElement("div");d.className="stage-card"+(dStage===i?" selected":"");
+    d.onclick=()=>{dStage=i;dBuildStages();document.getElementById("d-btn3").disabled=false};
+    d.innerHTML=`<div class="stage-num">${s.num}</div><div class="stage-name">${s.name}</div><div class="stage-quote">${s.quote}</div><div class="stage-advice">${s.advice}</div>`;
+    c.appendChild(d);
+  });
+}
+function dUpdateFormula(){
+  const g1=document.getElementById("d-g1").value.trim();
+  const g2=document.getElementById("d-g2").value.trim();
+  const g3=document.getElementById("d-g3").value.trim();
+  const box=document.getElementById("d-formula");
+  if(g1||g2||g3){box.style.display="block";document.getElementById("d-formula-text").textContent=fmtGoal(g1,g2,g3)}
+  else box.style.display="none";
+}
+function dCopy(){
+  navigator.clipboard.writeText(document.getElementById("d-formula-text").textContent).then(()=>{
+    const b=document.querySelector(".copy-btn");b.textContent="Скопійовано ✓";setTimeout(()=>b.textContent="Скопіювати ↗",2000);
+  });
+}
+function dBuildFinal(){
+  const tp=types[dType];const st=stages[dStage];
+  document.getElementById("d-final-letter").textContent=tp.letter;
+  document.getElementById("d-final-name").textContent=tp.name;
+  document.getElementById("d-final-type").textContent=tp.label;
+  document.getElementById("d-final-desc").textContent=tp.desc;
+  document.getElementById("d-final-tips").innerHTML=tp.tips.map(t=>`<div class="final-tip">${t}</div>`).join("");
+  const g1=document.getElementById("d-g1").value.trim();
+  const g2=document.getElementById("d-g2").value.trim();
+  const g3=document.getElementById("d-g3").value.trim();
+  document.getElementById("d-final-goal").textContent=(g1||g2||g3)?fmtGoal(g1,g2,g3):"Ціль не заповнена";
+  document.getElementById("d-final-stage").textContent=`${st.num}: ${st.name}`;
+  document.getElementById("d-final-stage-advice").innerHTML=`<div class="final-tip">${st.advice}</div>`;
+  document.getElementById("d-final-rule").textContent=`"${tp.rule}"`;
+}
+function dRestart(){
+  dAnswers={};dStage=null;dType=null;
+  ["d-g1","d-g2","d-g3"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("d-formula").style.display="none";
+  document.getElementById("d-btn1").disabled=true;
+  document.getElementById("d-answered-count").textContent="0 / 20";
+  document.getElementById("d-progress-fill").style.width="0%";
+  dBuildQ();dGoStep1();
+}
+
+// ══ MOBILE ══
+function mBuildQ(){
+  const c=document.getElementById("m-questions");c.innerHTML="";
+  questions.forEach((q,i)=>{
+    const div=document.createElement("div");
+    div.className="m-yn-block"+(mAnswers[i]?" answered":"");
+    div.id=`mblock${i}`;
+    div.innerHTML=`
+      <div class="m-yn-top">
+        <div class="m-yn-num">${i+1}</div>
+        <div class="m-yn-text">${q.text}</div>
+      </div>
+      <div class="m-yn-btns">
+        <button class="m-yn-btn yes${mAnswers[i]==='yes'?' active':''}" onclick="mAns(${i},'yes')">Так</button>
+        <button class="m-yn-btn no${mAnswers[i]==='no'?' active':''}" onclick="mAns(${i},'no')">Ні</button>
+      </div>`;
+    c.appendChild(div);
+  });
+}
+function mAns(i,val){
+  mAnswers[i]=val;
+  const block=document.getElementById(`mblock${i}`);
+  block.className="m-yn-block answered";
+  block.querySelectorAll(".m-yn-btn").forEach(b=>b.classList.remove("active"));
+  block.querySelector(`.m-yn-btn.${val}`).classList.add("active");
+  const count=Object.keys(mAnswers).length;
+  document.getElementById("m-answered-count").textContent=`${count} / 20`;
+  document.getElementById("m-progress-fill").style.width=`${count/20*100}%`;
+  document.getElementById("m-btn1").disabled=count<20;
+}
+function mSetNav(s){
+  [1,2,3,4].forEach(i=>{
+    const el=document.getElementById("mp"+i);
+    el.classList.remove("active","done");
+    if(i<s)el.classList.add("done");else if(i===s)el.classList.add("active");
+  });
+  const labels=["","Крок 1 з 3 — Тип учня","Крок 2 з 3 — Ціль на курс","Крок 3 з 3 — Поточна стадія","Готово — Твоя картка"];
+  document.getElementById("m-prog-label").textContent=labels[s];
+}
+function mShow(id){["m1","m2","m3","m4"].forEach(x=>document.getElementById(x).style.display="none");document.getElementById(id).style.display="";window.scrollTo({top:0,behavior:"smooth"})}
+function mGoStep1(){mShow("m1");mSetNav(1)}
+function mGoStep2(){mType=calcType(mAnswers);mShow("m2");mSetNav(2);mUpdateFormula()}
+function mGoStep3(){mShow("m3");mSetNav(3);mBuildStages()}
+function mGoFinal(){mShow("m4");mSetNav(4);mBuildFinal()}
+function mBuildStages(){
+  const c=document.getElementById("m-stages");c.innerHTML="";
+  stages.forEach((s,i)=>{
+    const d=document.createElement("div");d.className="m-stage"+(mStage===i?" selected":"");
+    d.onclick=()=>{mStage=i;mBuildStages();document.getElementById("m-btn3").disabled=false};
+    d.innerHTML=`<div class="m-stage-num">${s.num}</div><div class="m-stage-name">${s.name}</div><div class="m-stage-quote">${s.quote}</div><div class="m-stage-advice">${s.advice}</div>`;
+    c.appendChild(d);
+  });
+}
+function mUpdateFormula(){
+  const g1=document.getElementById("m-g1").value.trim();
+  const g2=document.getElementById("m-g2").value.trim();
+  const g3=document.getElementById("m-g3").value.trim();
+  const box=document.getElementById("m-formula");
+  if(g1||g2||g3){box.style.display="block";document.getElementById("m-formula-text").textContent=fmtGoal(g1,g2,g3)}
+  else box.style.display="none";
+}
+function mBuildFinal(){
+  const tp=types[mType];const st=stages[mStage];
+  document.getElementById("m-final-name").textContent=tp.name;
+  document.getElementById("m-final-type").textContent=tp.label;
+  document.getElementById("m-final-desc").textContent=tp.desc;
+  document.getElementById("m-final-tips").innerHTML=tp.tips.map(t=>`<div class="m-final-tip">${t}</div>`).join("");
+  const g1=document.getElementById("m-g1").value.trim();
+  const g2=document.getElementById("m-g2").value.trim();
+  const g3=document.getElementById("m-g3").value.trim();
+  document.getElementById("m-final-goal").textContent=(g1||g2||g3)?fmtGoal(g1,g2,g3):"Ціль не заповнена";
+  document.getElementById("m-final-stage").textContent=`${st.num}: ${st.name}`;
+  document.getElementById("m-final-stage-advice").innerHTML=`<div class="m-final-tip">${st.advice}</div>`;
+  document.getElementById("m-final-rule").textContent=`"${tp.rule}"`;
+}
+function mRestart(){
+  mAnswers={};mStage=null;mType=null;
+  ["m-g1","m-g2","m-g3"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("m-formula").style.display="none";
+  document.getElementById("m-btn1").disabled=true;
+  document.getElementById("m-answered-count").textContent="0 / 20";
+  document.getElementById("m-progress-fill").style.width="0%";
+  mBuildQ();mGoStep1();
+}
+
+dBuildQ();
+mBuildQ();
+</script>
+</body>
+</html>
